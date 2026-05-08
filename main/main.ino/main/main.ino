@@ -1,13 +1,14 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <WiFiClientSecure.h>
 #include <DHT.h>
 #include <ArduinoJson.h>
 
-const char* ssid = "IFMA2";
-const char* password = "ifma1234";
+const char* ssid = "";
+const char* password = "";
 
 const char* mqtt_server = "broker.emqx.io";
-const int mqtt_port = 1883;
+const int mqtt_port = 8883;
 
 const char* topic_led = "kai/led";
 const char* topic_sensores = "kai/sensores";
@@ -21,7 +22,7 @@ const char* topic_sensores = "kai/sensores";
 
 #define DHTTYPE DHT11
 
-WiFiClient espClient;
+WiFiClientSecure espClient;
 PubSubClient client(espClient);
 DHT dht(DHT_pin, DHTTYPE);
 
@@ -127,6 +128,7 @@ void setup() {
   conectarWiFi();
 
   client.setServer(mqtt_server, mqtt_port);
+  espClient.setInsecure();
   client.setCallback(callback);
 }
 
