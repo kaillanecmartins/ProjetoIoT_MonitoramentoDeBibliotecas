@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dashboard IoT</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css"
+    />
+
+    <style>
+      .title,
+      .button {
+        font-family: Georgia, "Times New Roman", Times, serif;
+        color: black;
+      }
+      .bt1:hover {
+        background-color: #f69c9e;
+        font-weight: 700;
+      }
+      .bt2:hover {
+        background-color: #97e3c2;
+        font-weight: 700;
+      }
+      .hero {
+        background-color: rgb(232, 236, 243);
+      }
+      .box {
+        background-color: #aad2ec;
+      }
+      .card {
+        background-color: #aad2ec;
+        color: black;
+      }
+    </style>
+  </head>
+
+  <body>
+    <section class="hero is-fullheight">
+      <div class="hero-body">
+        <div class="container">
+          <h1 class="title has-text-centered mb-5">
+            Projeto IoT - Franciele e Kaillane
+          </h1>
+          <div
+            id="alerta-gas"
+            class="notification is-danger is-light"
+            style="display: none"
+          >
+            Nível de gás elevado! Risco de incêndio!
+          </div>
+
+          <div class="columns is-multiline">
+            <div class="column is-3">
+              <div class="card has-text-centered p-4">
+                <p>Temperatura</p>
+                <p id="temp" class="sensor-value">-- °C</p>
+              </div>
+            </div>
+
+            <div class="column is-3">
+              <div class="card has-text-centered p-4">
+                <p>Umidade</p>
+                <p id="hum" class="sensor-value">-- %</p>
+              </div>
+            </div>
+
+            <div class="column is-3">
+              <div class="card has-text-centered p-4">
+                <p>Movimento</p>
+                <p id="pir" class="sensor-value">--</p>
+              </div>
+            </div>
+
+            <div class="column is-3">
+              <div class="card has-text-centered p-4">
+                <p>Gás</p>
+                <p id="mq2" class="sensor-value">--</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="box mt-6" style="max-width: 400px; margin: auto">
+            <h2 class="title is-5 has-text-centered">Controle do LED</h2>
+            <p id="status" class="has-text-centered">Conectando...</p>
+
+            <div class="buttons is-centered mt-3">
+              <button onclick="enviar('1')" class="button bt2">Ligar</button>
+              <button onclick="enviar('0')" class="button bt1">Desligar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+
+    <script>
+      const client = new Paho.MQTT.Client(
+        "broker.emqx.io",
+        8084,
+        "web_" + Math.random(),
+      );
+
+      const LIMITE_GAS = 1500;
+      let alertaAtivo = false;
+
+      client.onMessageArrived = function (message) {
+        const data = JSON.parse(message.payloadString);
+
+        document.getElementById("temp").textContent =
+          data.temperatura.toFixed(1) + " °C";
+
+        document.getElementById("hum").textContent =
+          data.umidade.toFixed(1) + " %";
+
+        document.getElementById("pir").textContent = data.movimento
+          ? "Detectado"
+          : "Sem movimento";
+
+        document.getElementById("mq2").textContent = data.gas;
+
+        const alerta = document.getElementById("alerta-gas");
+
+        if (data.gas > LIMITE_GAS) {
+          alerta.style.display = "block";
+
+          if (!alertaAtivo) {
+            alertaAtivo = true;
+
+            alert("ALERTA: Nível de gás perigoso!");
+          }
+        } else {
+          alerta.style.display = "none";
+          alertaAtivo = false;
+        }
+      };
+
+      function conectar() {
+        client.connect({
+          useSSL: true,
+          onSuccess: () => {
+            document.getElementById("status").textContent = "Conectado";
+            client.subscribe("frankai/sensores");
+          },
+          onFailure: () => setTimeout(conectar, 2000),
+        });
+      }
+
+      function enviar(valor) {
+        const msg = new Paho.MQTT.Message(valor);
+        msg.destinationName = "frankai/led";
+        client.send(msg);
+      }
+
+      conectar();
+    </script>
+  </body>
+</html>
