@@ -18,7 +18,7 @@ const char* topic_sensores = "kai/sensores";
 
 #define DHT_pin 15
 #define PIR_pin 2
-#define DHTTYPE DHT22
+#define DHTTYPE DHT11
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -82,7 +82,6 @@ void setup() {
   pinMode(B_pin, OUTPUT);
 
   pinMode(PIR_pin, INPUT);
-  pinMode(MQ_PIN, INPUT);
 
   dht.begin();
 
