@@ -3,8 +3,8 @@
 #include <DHT.h>
 #include <ArduinoJson.h>
 
-const char* ssid = "Wokwi-GUEST";
-const char* password = "";
+const char* ssid = "IFMA2";
+const char* password = "ifma1234";
 
 const char* mqtt_server = "broker.emqx.io";
 const int mqtt_port = 1883;
@@ -17,60 +17,97 @@ const char* topic_sensores = "kai/sensores";
 #define B_pin 21
 
 #define DHT_pin 15
-#define PIR_pin 2
+#define PIR_pin 4
+
 #define DHTTYPE DHT11
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 DHT dht(DHT_pin, DHTTYPE);
 
-unsigned long lastReconnectAttempt = 0;
 unsigned long lastPublish = 0;
 
-void LED_RGB(int modeR, int modeG, int modeB){
-  digitalWrite(R_pin, modeR);
-  digitalWrite(G_pin, modeG);
-  digitalWrite(B_pin, modeB);
+bool ledRemoto = false;
+
+void LED_RGB(bool r, bool g, bool b) {
+  digitalWrite(R_pin, r);
+  digitalWrite(G_pin, g);
+  digitalWrite(B_pin, b);
+}
+
+void conectarWiFi() {
+
+  Serial.println("Conectando ao WiFi...");
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println();
+  Serial.println("WiFi conectado!");
+  Serial.print("IP: ");
+  Serial.println(WiFi.localIP());
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
+
+  Serial.print("Mensagem recebida: ");
+
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+  }
+
+  Serial.println();
 
   if (length == 1) {
 
     if (payload[0] == '1') {
 
+      ledRemoto = true;
+
       LED_RGB(0, 1, 0);
 
-      Serial.println("LED LIGADO");
-
+      Serial.println("LED REMOTO LIGADO");
     }
 
     else if (payload[0] == '0') {
 
+      ledRemoto = false;
+
       LED_RGB(0, 0, 0);
 
-      Serial.println("LED DESLIGADO");
+      Serial.println("LED REMOTO DESLIGADO");
     }
   }
 }
 
-boolean reconnect() {
+void conectarMQTT() {
 
-  String clientId = "ESP32_" + String(random(0xffff), HEX);
+  while (!client.connected()) {
 
-  if (client.connect(clientId.c_str())) {
+    Serial.println("Conectando MQTT...");
 
-    Serial.println("MQTT conectado");
+    String clientId =
+      "ESP32-" + String(random(0xffff), HEX);
 
-    client.subscribe(topic_led);
+    if (client.connect(clientId.c_str())) {
 
-  } else {
+      Serial.println("MQTT conectado!");
 
-    Serial.print("Falha MQTT: ");
-    Serial.println(client.state());
+      client.subscribe(topic_led);
+
+    } else {
+
+      Serial.print("Falha MQTT: ");
+      Serial.println(client.state());
+
+      delay(2000);
+    }
   }
-
-  return client.connected();
 }
 
 void setup() {
@@ -85,70 +122,50 @@ void setup() {
 
   dht.begin();
 
-  Serial.println("Conectando WiFi...");
+  LED_RGB(0, 0, 0);
 
-  WiFi.begin(ssid, password);
-
-  unsigned long startAttemptTime = millis();
-
-  while (WiFi.status() != WL_CONNECTED &&
-         millis() - startAttemptTime < 10000) {
-
-    delay(300);
-    Serial.print(".");
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-
-    Serial.println("\nWiFi conectado!");
-
-  } else {
-
-    Serial.println("\nFalha no WiFi");
-  }
+  conectarWiFi();
 
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
 }
 
-
 void loop() {
 
-  if (!client.connected()) {
+  if (WiFi.status() != WL_CONNECTED) {
 
-    unsigned long now = millis();
-
-    if (now - lastReconnectAttempt > 5000) {
-
-      lastReconnectAttempt = now;
-
-      if (reconnect()) {
-        lastReconnectAttempt = 0;
-      }
-    }
-
-  } else {
-
-    client.loop();
+    Serial.println("WiFi desconectado!");
+    conectarWiFi();
   }
+
+  if (!client.connected()) {
+    conectarMQTT();
+  }
+
+  client.loop();
 
   if (millis() - lastPublish > 2000) {
 
     lastPublish = millis();
+
     float temp = dht.readTemperature();
     float hum = dht.readHumidity();
+
     int presenca = digitalRead(PIR_pin);
 
     if (isnan(temp) || isnan(hum)) {
 
-      Serial.println("Erro no DHT22");
+      Serial.println("Erro no DHT11");
       return;
     }
 
-    if (presenca) {
+    if (presenca && !ledRemoto) {
+
       LED_RGB(1, 0, 0);
-    } else {
-      LED_RGB(0, 1, 0);
+
+    } else if (!ledRemoto) {
+
+      LED_RGB(0, 0, 0);
     }
 
     StaticJsonDocument<128> doc;
