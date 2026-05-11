@@ -17,9 +17,9 @@ const char* topic_sensores = "kai/sensores";
 #define G_pin 19
 #define B_pin 21
 
-#define DHT_pin 15
-#define PIR_pin 4
-
+#define DHT_pin 5
+#define PIR_pin 22
+#define KY_pin 15
 #define DHTTYPE DHT11
 
 WiFiClientSecure espClient;
@@ -70,7 +70,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
       ledRemoto = true;
 
-      LED_RGB(0, 1, 0);
+      LED_RGB(1, 0, 1);
 
       Serial.println("LED REMOTO LIGADO");
     }
@@ -120,6 +120,7 @@ void setup() {
   pinMode(B_pin, OUTPUT);
 
   pinMode(PIR_pin, INPUT);
+  pinMode(KY_pin, INPUT);
 
   dht.begin();
 
@@ -154,6 +155,7 @@ void loop() {
     float hum = dht.readHumidity();
 
     int presenca = digitalRead(PIR_pin);
+    int som = analogRead(KY_pin);
 
     if (isnan(temp) || isnan(hum)) {
 
@@ -163,11 +165,10 @@ void loop() {
 
     if (presenca && !ledRemoto) {
 
-      LED_RGB(1, 0, 0);
+      LED_RGB(0, 1, 0);
 
-    } else if (!ledRemoto) {
-
-      LED_RGB(0, 0, 0);
+    } else if(!ledRemoto){
+      LED_RGB(1,0,0);
     }
 
     StaticJsonDocument<128> doc;
@@ -175,6 +176,7 @@ void loop() {
     doc["temperatura"] = temp;
     doc["umidade"] = hum;
     doc["movimento"] = presenca;
+    doc["som"] = som;
 
     char buffer[128];
 

@@ -148,12 +148,20 @@
               <div class="card has-text-centered p-5">
                 <div class="sensor-title">Movimento</div>
 
-                <div id="pir" class="sensor-value">--</div>
+                <div id="movimento" class="sensor-value">--</div>
+              </div>
+            </div>
+
+            <div class="column is-3">
+              <div class="card has-text-centered p-5">
+                <div class="sensor-title">Som</div>
+
+                <div id="som" class="sensor-value">--</div>
               </div>
             </div>
           </div>
           <div class="box mt-6" style="max-width: 450px; margin: auto">
-            <h2 class="title is-5 has-text-centered">Controle do LED RGB</h2>
+            <h2 class="title is-5 has-text-centered">Botão de Alerta</h2>
 
             <p id="status" class="has-text-centered status-erro">
               Conectando...
@@ -182,10 +190,6 @@
         "web_" + Math.random(),
       );
 
-      const LIMITE_GAS = 1500;
-
-      let alertaAtivo = false;
-
       client.onMessageArrived = function (message) {
         const data = JSON.parse(message.payloadString);
 
@@ -195,7 +199,9 @@
         document.getElementById("hum").textContent =
           data.umidade.toFixed(1) + " %";
 
-        const pir = document.getElementById("pir");
+        const pir = document.getElementById("movimento");
+
+        document.getElementById("som").textContent = data.som;
 
         if (data.movimento) {
           pir.textContent = "Detectado";
