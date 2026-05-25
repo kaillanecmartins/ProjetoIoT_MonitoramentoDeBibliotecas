@@ -114,6 +114,21 @@
       .status-erro {
         color: #e74c3c;
       }
+      .container {
+        max-width: 1400px;
+      }
+
+      .sensor-card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 180px;
+      }
+
+      .columns {
+        justify-content: center;
+      }
     </style>
   </head>
 
@@ -127,38 +142,58 @@
 
           <h2 class="subtitle has-text-centered mb-6">Kaillane Martins</h2>
 
-          <div class="columns is-multiline">
-            <div class="column is-3">
-              <div class="card has-text-centered p-5">
+          <div class="columns is-multiline is-centered">
+            <div
+              class="column is-12-mobile is-6-tablet is-4-desktop is-3-widescreen"
+            >
+              <div class="card sensor-card has-text-centered p-5">
                 <div class="sensor-title">Temperatura</div>
-
                 <div id="temp" class="sensor-value">-- °C</div>
               </div>
             </div>
 
-            <div class="column is-3">
-              <div class="card has-text-centered p-5">
+            <div
+              class="column is-12-mobile is-6-tablet is-4-desktop is-3-widescreen"
+            >
+              <div class="card sensor-card has-text-centered p-5">
                 <div class="sensor-title">Umidade</div>
-
                 <div id="hum" class="sensor-value">-- %</div>
               </div>
             </div>
 
-            <div class="column is-3">
-              <div class="card has-text-centered p-5">
-                <div class="sensor-title">Movimento</div>
-
-                <div id="movimento" class="sensor-value">--</div>
+            <div
+              class="column is-12-mobile is-6-tablet is-4-desktop is-3-widescreen"
+            >
+              <div class="card sensor-card has-text-centered p-5">
+                <div class="sensor-title">Cabine 1</div>
+                <div id="movimento1" class="sensor-value">--</div>
               </div>
             </div>
 
-            <div class="column is-3">
-              <div class="card has-text-centered p-5">
-                <div class="sensor-title">Som</div>
+            <div
+              class="column is-12-mobile is-6-tablet is-4-desktop is-3-widescreen"
+            >
+              <div class="card sensor-card has-text-centered p-5">
+                <div class="sensor-title">Cabine 2</div>
+                <div id="movimento2" class="sensor-value">--</div>
+              </div>
+            </div>
 
+            <div
+              class="column is-12-mobile is-6-tablet is-4-desktop is-3-widescreen"
+            >
+              <div class="card sensor-card has-text-centered p-5">
+                <div class="sensor-title">Som</div>
                 <div id="som" class="sensor-value">--</div>
               </div>
             </div>
+          </div>
+          <div
+            id="alerta-umidade"
+            class="notification is-danger has-text-centered mt-4"
+            style="display: none"
+          >
+            Alerta: Umidade acima do limite permitido!
           </div>
           <div class="box mt-6" style="max-width: 450px; margin: auto">
             <h2 class="title is-5 has-text-centered">Botão de Alerta</h2>
@@ -199,16 +234,35 @@
         document.getElementById("hum").textContent =
           data.umidade.toFixed(1) + " %";
 
-        const pir = document.getElementById("movimento");
+        const alertaUmidade = document.getElementById("alerta-umidade");
+
+        //alerda de umidade elevada (acima de 65%)
+        if (data.umidade > 65) {
+          alertaUmidade.style.display = "block";
+        } else {
+          alertaUmidade.style.display = "none";
+        }
+
+        //const pir = document.getElementById("movimento1");
+        const ir1 = document.getElementById("movimento1");
+        const ir2 = document.getElementById("movimento2");
 
         document.getElementById("som").textContent = data.som;
 
-        if (data.movimento) {
-          pir.textContent = "Detectado";
-          pir.className = "sensor-value alerta";
+        if (data.movimento1 == 0) {
+          ir1.textContent = "Presença detectada";
+          ir1.className = "sensor-value alerta";
         } else {
-          pir.textContent = "Sem movimento";
-          pir.className = "sensor-value ok";
+          ir1.textContent = "Sem presença";
+          ir1.className = "sensor-value ok";
+        }
+
+        if (data.movimento2 == 0) {
+          ir2.textContent = "Presença Detectada";
+          ir2.className = "sensor-value alerta";
+        } else {
+          ir2.textContent = "Sem presença";
+          ir2.className = "sensor-value ok";
         }
       };
 

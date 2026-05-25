@@ -13,13 +13,16 @@ const int mqtt_port = 8883;
 const char* topic_led = "kai/led";
 const char* topic_sensores = "kai/sensores";
 
-#define R_pin 18
-#define G_pin 19
-#define B_pin 21
+#define R_pin1 5
+#define G_pin1 18
+#define R_pin2 19
+#define G_pin2 21
 
-#define DHT_pin 5
-#define PIR_pin 22
-#define KY_pin 15
+#define DHT_pin 15
+#define IR1_pin 22
+#define IR2_pin 4
+//#define PIR_pin 22
+//#define KY_pin 15
 #define DHTTYPE DHT11
 
 WiFiClientSecure espClient;
@@ -30,10 +33,13 @@ unsigned long lastPublish = 0;
 
 bool ledRemoto = false;
 
-void LED_RGB(bool r, bool g, bool b) {
-  digitalWrite(R_pin, r);
-  digitalWrite(G_pin, g);
-  digitalWrite(B_pin, b);
+void LED_RG1(int modeR, int modeG){
+    digitalWrite(R_pin1, modeR);
+    digitalWrite(G_pin1, modeG);
+}
+void LED_RG2(int modeR, int modeG){
+    digitalWrite(R_pin2, modeR);
+    digitalWrite(G_pin2, modeG);
 }
 
 void conectarWiFi() {
@@ -70,7 +76,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
       ledRemoto = true;
 
-      LED_RGB(1, 0, 1);
+      LED_RG1(0, 1);
 
       Serial.println("LED REMOTO LIGADO");
     }
@@ -79,7 +85,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
       ledRemoto = false;
 
-      LED_RGB(0, 0, 0);
+      LED_RG2(0, 1);
 
       Serial.println("LED REMOTO DESLIGADO");
     }
@@ -115,16 +121,18 @@ void setup() {
 
   Serial.begin(115200);
 
-  pinMode(R_pin, OUTPUT);
-  pinMode(G_pin, OUTPUT);
-  pinMode(B_pin, OUTPUT);
+  pinMode(R_pin1, OUTPUT);
+  pinMode(G_pin1, OUTPUT);
+  pinMode(R_pin2, OUTPUT);
+  pinMode(G_pin2, OUTPUT);
 
-  pinMode(PIR_pin, INPUT);
-  pinMode(KY_pin, INPUT);
+  pinMode(DHT_pin, INPUT);
+  pinMode(IR1_pin, INPUT);
+  pinMode(IR2_pin, INPUT);
+  //pinMode(PIR_pin, INPUT);
+  //pinMode(KY_pin, INPUT);
 
   dht.begin();
-
-  LED_RGB(0, 0, 0);
 
   conectarWiFi();
 
@@ -154,8 +162,11 @@ void loop() {
     float temp = dht.readTemperature();
     float hum = dht.readHumidity();
 
+/*
     int presenca = digitalRead(PIR_pin);
-    int som = analogRead(KY_pin);
+    int som = analogRead(KY_pin);*/
+    int presenca1 = digitalRead(IR1_pin); 
+    int presenca2 = digitalRead(IR2_pin); 
 
     if (isnan(temp) || isnan(hum)) {
 
@@ -163,20 +174,22 @@ void loop() {
       return;
     }
 
+/*
     if (presenca && !ledRemoto) {
 
-      LED_RGB(0, 1, 0);
+      LED_RG1(0, 1);
 
     } else if(!ledRemoto){
       LED_RGB(1,0,0);
-    }
+    }*/
 
     StaticJsonDocument<128> doc;
 
     doc["temperatura"] = temp;
     doc["umidade"] = hum;
-    doc["movimento"] = presenca;
-    doc["som"] = som;
+    doc["movimento1"] = presenca1;
+    doc["movimento2"] = presenca2;
+    //doc["som"] = som;
 
     char buffer[128];
 
