@@ -13,15 +13,13 @@ const int mqtt_port = 8883;
 const char* topic_led = "kai/led";
 const char* topic_sensores = "kai/sensores";
 
-#define R_pin1 5
-#define G_pin1 18
-#define R_pin2 19
-#define G_pin2 21
+#define led1 19
+#define led2 18
 
 #define DHT_pin 15
-#define IR1_pin 22
-#define IR2_pin 4
-//#define PIR_pin 22
+#define IR1_pin 4
+//#define IR2_pin 4
+#define PIR_pin 22
 //#define KY_pin 15
 #define DHTTYPE DHT11
 
@@ -32,15 +30,6 @@ DHT dht(DHT_pin, DHTTYPE);
 unsigned long lastPublish = 0;
 
 bool ledRemoto = false;
-
-void LED_RG1(int modeR, int modeG){
-    digitalWrite(R_pin1, modeR);
-    digitalWrite(G_pin1, modeG);
-}
-void LED_RG2(int modeR, int modeG){
-    digitalWrite(R_pin2, modeR);
-    digitalWrite(G_pin2, modeG);
-}
 
 void conectarWiFi() {
 
@@ -121,15 +110,13 @@ void setup() {
 
   Serial.begin(115200);
 
-  pinMode(R_pin1, OUTPUT);
-  pinMode(G_pin1, OUTPUT);
-  pinMode(R_pin2, OUTPUT);
-  pinMode(G_pin2, OUTPUT);
+  pinMode(led1, OUTPUT);
+  pinMode(led2, OUTPUT);
 
   pinMode(DHT_pin, INPUT);
   pinMode(IR1_pin, INPUT);
-  pinMode(IR2_pin, INPUT);
-  //pinMode(PIR_pin, INPUT);
+  //pinMode(IR2_pin, INPUT);
+  pinMode(PIR_pin, INPUT);
   //pinMode(KY_pin, INPUT);
 
   dht.begin();
@@ -162,11 +149,11 @@ void loop() {
     float temp = dht.readTemperature();
     float hum = dht.readHumidity();
 
-/*
-    int presenca = digitalRead(PIR_pin);
-    int som = analogRead(KY_pin);*/
+
+    int presenca2 = digitalRead(PIR_pin);
+    //int som = analogRead(KY_pin);
     int presenca1 = digitalRead(IR1_pin); 
-    int presenca2 = digitalRead(IR2_pin); 
+    //int presenca2 = digitalRead(IR2_pin); 
 
     if (isnan(temp) || isnan(hum)) {
 
@@ -174,14 +161,12 @@ void loop() {
       return;
     }
 
-/*
+
     if (presenca && !ledRemoto) {
-
-      LED_RG1(0, 1);
-
+      digitalWrite(led2, HIGH);
     } else if(!ledRemoto){
-      LED_RGB(1,0,0);
-    }*/
+      digitalWrite(led2, LOW);
+    }
 
     StaticJsonDocument<128> doc;
 
