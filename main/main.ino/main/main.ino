@@ -65,8 +65,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
       ledRemoto = true;
 
-      LED_RG1(0, 1);
-
+      digitalWrite(led1, HIGH);
       Serial.println("LED REMOTO LIGADO");
     }
 
@@ -74,7 +73,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
       ledRemoto = false;
 
-      LED_RG2(0, 1);
+      digitalWrite(led1, LOW);
 
       Serial.println("LED REMOTO DESLIGADO");
     }
@@ -162,7 +161,13 @@ void loop() {
     }
 
 
-    if (presenca && !ledRemoto) {
+    if (!presenca1 && !ledRemoto) {
+      digitalWrite(led1, HIGH);
+    } else if(!ledRemoto){
+      digitalWrite(led1, LOW);
+    }
+
+    if (!presenca2 && !ledRemoto) {
       digitalWrite(led2, HIGH);
     } else if(!ledRemoto){
       digitalWrite(led2, LOW);

@@ -134,7 +134,7 @@
             Projeto IoT - Monitoramento de Bibliotecas
           </h1>
 
-          <h2 class="subtitle has-text-centered mb-6">Kaillane Martins</h2>
+          <h2 class="subtitle has-text-centered mt-3 mb-6">Kaillane Martins</h2>
 
           <div class="columns is-multiline is-centered">
             <div
@@ -173,14 +173,14 @@
               </div>
             </div>
 
-            <div
+            <!--<div
               class="column is-12-mobile is-6-tablet is-4-desktop is-3-widescreen"
             >
               <div class="card sensor-card has-text-centered p-5">
                 <div class="sensor-title">Som</div>
                 <div id="som" class="sensor-value">--</div>
               </div>
-            </div>
+            </div>-->
           </div>
           <div
             id="alerta-umidade"
@@ -241,21 +241,21 @@
         const ir1 = document.getElementById("movimento1");
         //const ir2 = document.getElementById("movimento2");
 
-        document.getElementById("som").textContent = data.som;
+        //document.getElementById("som").textContent = data.som;
 
         if (data.movimento1 == 0) {
-          ir1.textContent = "Presença detectada";
+          ir1.textContent = "Ocupada";
           ir1.className = "sensor-value alerta";
         } else {
-          ir1.textContent = "Sem presença";
+          ir1.textContent = "Vazia";
           ir1.className = "sensor-value ok";
         }
 
         if (data.movimento2 == 0) {
-          pir.textContent = "Presença Detectada";
+          pir.textContent = "Ocupada";
           pir.className = "sensor-value alerta";
         } else {
-          pir.textContent = "Sem presença";
+          pir.textContent = "Vazia";
           pir.className = "sensor-value ok";
         }
       };
